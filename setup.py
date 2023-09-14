@@ -7,6 +7,7 @@ import os
 
 import setuptools
 from setuptools import setup
+from setuptools_rust import RustExtension
 
 # Read the streaming version
 # Cannot import from `streaming.__version__` since that will not be available when building or installing the package
@@ -127,4 +128,6 @@ setup(
     install_requires=install_requires,
     extras_require=extra_deps,
     python_requires='>=3.8',
+    rust_extensions=[RustExtension('streaming.my_factorial', 'rust/Cargo.toml')],
+    zip_safe=False,
 )
