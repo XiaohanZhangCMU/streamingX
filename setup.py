@@ -7,6 +7,7 @@ import os
 
 import setuptools
 from setuptools import setup
+from setuptools_rust import RustExtension
 
 # Read the streaming version
 # Cannot import from `streaming.__version__` since that will not be available when building or installing the package
@@ -44,7 +45,7 @@ classifiers = [
 install_requires = [
     'boto3>=1.21.45,<2',
     'Brotli>=1.0.9',
-    'google-cloud-storage>=2.9.0,<2.11.0',
+    'google-cloud-storage>=2.9.0',
     'matplotlib>=3.5.2,<4',
     'paramiko>=2.11.0,<4',
     'python-snappy>=0.6.1,<1',
@@ -156,4 +157,6 @@ setup(
     install_requires=install_requires,
     extras_require=extra_deps,
     python_requires='>=3.9',
+    rust_extensions=[RustExtension('streaming.delta', 'rust/Cargo.toml')],
+    zip_safe=False,
 )
