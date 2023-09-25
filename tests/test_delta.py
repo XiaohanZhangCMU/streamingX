@@ -26,10 +26,10 @@ class TestDelta:
 
     @pytest.fixture
     def test_data(self) -> str:
-        yield 'tests/resources/0000_one_piece/'
-        #yield 'tests/resources/0000/'
-        #yield 'tests/resources/lz4/'
-        #yield 'tests/resources/lion_w_page/'
+        #yield '../resources/0000_one_piece/'
+        yield '../resources/0000/'
+        #yield '../resources/lz4/'
+        #yield '../resources/lion_w_page/'
 
     @pytest.fixture
     def offsets(self, test_data) -> Dict:

@@ -70,17 +70,17 @@ fn read_one(n: usize, pq_path: String) -> Result<Py<PyAny>, PyErr> {
 
     let options = ArrowReaderOptions::new().with_page_index(true);
 
-    let selection = RowSelection::from(vec![
-        RowSelector::skip(n),
-        RowSelector::select(1)
-    ]);
+    // let selection = RowSelection::from(vec![
+    //     RowSelector::skip(n),
+    //     RowSelector::select(1)
+    // ]);
 
     let file = File::open(pq_path).unwrap();
 
     let sync_batches = ParquetRecordBatchReaderBuilder::try_new_with_options(file, options)
         .unwrap()
         .with_batch_size(1)
-        .with_row_selection(selection)
+        .with_row_selection((vec![RowSelector::skip(n), RowSelector::select(1)]).into())
         .build()
         .unwrap()
         .collect::<ArrowResult<Vec<_>>>()
