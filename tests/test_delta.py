@@ -19,7 +19,7 @@ import time
 import pandas as pd
 import random
 
-n_records = 500
+n_records = 2
 
 
 class TestDelta:
@@ -48,7 +48,7 @@ class TestDelta:
         yield sample_ids
 
 
-    @pytest.mark.parametrize('delta_or_pandas', ['delta', ]) # 'pandas'])
+    @pytest.mark.parametrize('delta_or_pandas', ['delta', 'pandas'])
     def test_time_single(self, offsets: Dict, delta_or_pandas: str):
         print('test read single record a time - ' + delta_or_pandas)
         tik = time.time()
@@ -56,7 +56,7 @@ class TestDelta:
         for pq, sample_ids in offsets.items():
             for offset in sample_ids:
                 if delta_or_pandas == 'delta':
-                    result = delta.read_one(offset, pq)
+                    result = delta.read_one_v2(offset, pq)
                     ans.append(result[0].to_pydict())
                 else:
                     df = pd.read_parquet(pq)

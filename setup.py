@@ -7,7 +7,6 @@ import os
 
 import setuptools
 from setuptools import setup
-from setuptools_rust import RustExtension
 
 # Read the streaming version
 # Cannot import from `streaming.__version__` since that will not be available when building or installing the package
@@ -135,6 +134,7 @@ package_name = os.environ.get('MOSAIC_PACKAGE_NAME', 'mosaicml-streaming')
 if package_name != 'mosaicml-streaming':
     print(f'Building mosaicml-streaming as {package_name}')
 
+from setuptools_rust import RustExtension
 setup(
     name=package_name,
     version=streaming_version,
