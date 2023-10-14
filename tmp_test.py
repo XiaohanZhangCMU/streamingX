@@ -19,9 +19,9 @@ import time
 import pandas as pd
 import random
 
-#pq = '0000_one_piece/part-00000-c3c4d5fb-726a-4f1e-8d38-8e7b44d71475-c000.snappy.parquet'
-pq = '0000/part-00000-804c197a-4c3a-46b3-a29e-bb458043e861-c000.snappy.parquet'
-pq = 'lz4/spark_generated.lz4.parquet'
+pq = '0000_one_piece/part-00000-c3c4d5fb-726a-4f1e-8d38-8e7b44d71475-c000.snappy.parquet'
+#pq = '0000/part-00000-804c197a-4c3a-46b3-a29e-bb458043e861-c000.snappy.parquet'
+#pq = 'lz4/spark_generated.lz4.parquet'
 
 #tik = time.time()
 #pq = '../resources/'+pq
@@ -41,6 +41,7 @@ tik = time.time()
 result = delta.read_one_v3(100000, pq)
 tok = time.time()
 print(f'Elapsed Python time: {tok - tik}')
+print(result)
 
 
 

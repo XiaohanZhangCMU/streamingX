@@ -28,6 +28,7 @@ use tokio::task;
 
 use pyo3::prelude::*;
 use pyo3::prelude::{PyResult, Python};
+use pyo3::types::PyByteArray;
 
 use std::sync::Arc;
 use bytes::Bytes;
@@ -218,14 +219,14 @@ fn read_one_v2(n: usize, pq_path: String) { // -> Result<Py<PyAny>, PyErr> {
 }
 
 #[pyfunction]
-fn read_one_v3(n: usize, pq_path: String) { // -> Result<Py<PyAny>, PyErr> { 
-    let col_indx = 4;
+fn read_one_v3(n: usize, pq_path: String) -> Result<Py<PyAny>, PyErr> { 
+    let col_indx = 2;
     let rg_indx = 0;
     let pg_indx = 0;
 
     let chunk_reader = File::open(pq_path).unwrap();
     let metadata = parse_metadata(&chunk_reader).unwrap();
-    let rg_meta = metadata.row_group(0);
+    let rg_meta = metadata.row_group(rg_indx);
 
     let tik = Instant::now();
     let offset_index = read_pages_locations(&chunk_reader, rg_meta.columns()).unwrap();
@@ -243,18 +244,10 @@ fn read_one_v3(n: usize, pq_path: String) { // -> Result<Py<PyAny>, PyErr> {
     let mut values = vec![ByteArray::default(); 1]; 
     let records_skipped = typed_column_reader.skip_records(1);
 
-
-    //let mut curr_values_read = 0;
-    //let mut curr_levels_read = 0;
     let mut def_levels = vec![0];
     let def_levels_option: Option<&mut [i16]> = Some(&mut def_levels[..]);
     let mut rep_levels = vec![0];
     let rep_levels_option: Option<&mut [i16]> = Some(&mut rep_levels[..]);
-    //let actual_def_levels =
-    //    def_levels.as_mut().map(|vec| &mut vec[curr_levels_read..]);
-    //let actual_rep_levels =
-    //    rep_levels.as_mut().map(|vec| &mut vec[curr_levels_read..]);
-    //let records_read = typed_column_reader.read_records(1, actual_def_levels, actual_rep_levels, &mut values);
     let (_, values_read, levels_read) = typed_column_reader.read_records(
         1,
         def_levels_option,
@@ -262,53 +255,22 @@ fn read_one_v3(n: usize, pq_path: String) { // -> Result<Py<PyAny>, PyErr> {
         &mut values,
     ).expect("read_records() should be OK");
 
-    //println!("{}", a.unwrap());
     println!("values = {:#?}", values);
     print_type_of(&values);
-
-    //if let Some(page_result) = page_reader.next() { 
-    //    match page_result { 
-    //        Ok(page) => { 
-    //            print_type_of(&page);
-    //            println!("num vals: {}", page.num_values());
-    //            //println!("buffer: {:?}", page.buffer());
-    //            print_type_of(page.buffer().data());
-    //            let bufferPtr = page.buffer();
-    //            let bytes = page.buffer().data().to_vec(); //working for 1st element
-    //            //let bytes = vec![page.buffer().data()];
-    //            let s_result = std::str::from_utf8(&bytes);
-    //            println!("{}", page.page_type());
-    //            println!("{}", page.encoding());
-    //            println!("{}", bufferPtr.len());
-    //            println!("{}", bytes.len());
-
-    //            match s_result {
-    //                Ok(s) => {
-    //                    println!("I am here 1");
-    //                    print_type_of(&s);
-    //                    println!("s = {}", s);
-    //                }
-    //                Err(e) => {
-    //                    //println!("{:?}", bytes);
-    //                    eprintln!("Error convert byte array: {:?}", e);
-    //                }
-    //            }
-    //        }
-    //        Err(e) => {
-    //            eprintln!("Error reading page: {:?}", e);
-    //        }
-    //    }
-    //} else { 
-    //    println!("No more pages to read.");
-    //}
 
     let tok = Instant::now();
     let elapsed_time = tok.duration_since(tik);
     println!("Elapsed Rust fetch time: {} seconds and {} milliseconds", elapsed_time.as_secs(), elapsed_time.subsec_millis());
 
-    //Python::with_gil(|py| {
-    //    sync_batches.to_pyarrow(py) 
-    //})
+    let data = values[0].data();
+    let len = values[0].len();
+    Python::with_gil(|py| -> PyResult<Py<PyAny>> {
+        let py_bytearray = PyByteArray::new_with(py, len, |bytes: &mut [u8]| {
+            bytes.copy_from_slice(&data);
+            Ok(())
+        })?;
+        Ok(py_bytearray.into())
+    })
 }
 
 
@@ -351,3 +313,42 @@ fn delta(_py: Python<'_>, m: &PyModule) -> PyResult<()> {
 //        data.to_pyarrow(py) 
 //    })
 //}
+//
+//
+
+//if let Some(page_result) = page_reader.next() { 
+//    match page_result { 
+//        Ok(page) => { 
+//            print_type_of(&page);
+//            println!("num vals: {}", page.num_values());
+//            //println!("buffer: {:?}", page.buffer());
+//            print_type_of(page.buffer().data());
+//            let bufferPtr = page.buffer();
+//            let bytes = page.buffer().data().to_vec(); //working for 1st element
+//            //let bytes = vec![page.buffer().data()];
+//            let s_result = std::str::from_utf8(&bytes);
+//            println!("{}", page.page_type());
+//            println!("{}", page.encoding());
+//            println!("{}", bufferPtr.len());
+//            println!("{}", bytes.len());
+
+//            match s_result {
+//                Ok(s) => {
+//                    println!("I am here 1");
+//                    print_type_of(&s);
+//                    println!("s = {}", s);
+//                }
+//                Err(e) => {
+//                    //println!("{:?}", bytes);
+//                    eprintln!("Error convert byte array: {:?}", e);
+//                }
+//            }
+//        }
+//        Err(e) => {
+//            eprintln!("Error reading page: {:?}", e);
+//        }
+//    }
+//} else { 
+//    println!("No more pages to read.");
+//}
+
