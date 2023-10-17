@@ -8,9 +8,11 @@ use parquet::file::footer::parse_metadata;
 use parquet::file::metadata::ParquetMetaData;
 use parquet::file::serialized_reader::SerializedFileReader;
 use parquet::file::serialized_reader::SerializedRowGroupReader;
-use parquet::file::properties::ReaderProperties;
+//use parquet::file::properties::ReaderProperties;
 use parquet::file::reader::SerializedPageReader;
 use parquet::file::reader::ChunkReader;
+use parquet::schema::parser::parse_message_type;
+use parquet::schema::types::SchemaDescriptor;
 use parquet::column::reader::{
     get_column_reader, get_typed_column_reader,
 };
@@ -23,7 +25,7 @@ use futures::TryStreamExt;
 use arrow::error::Result as ArrowResult;
 use arrow::record_batch::RecordBatch;
 use arrow::pyarrow::ToPyArrow;
-use parquet::errors::Result;
+//use parquet::errors::Result;
 use tokio::task;
 
 use pyo3::prelude::*;
@@ -37,6 +39,25 @@ use std::time::Instant;
 use std::time::Duration;
 use std::ops::Range;
 use std::sync::Mutex;
+
+
+//use arrow_buffer::Buffer;
+//
+//use parquet::arrow::record_reader::{
+//    buffer::{BufferQueue, ScalarBuffer, ValuesBuffer},
+//    definition_levels::{DefinitionLevelBuffer, DefinitionLevelBufferDecoder},
+//};
+//use parquet::column::reader::decoder::RepetitionLevelDecoderImpl;
+//use parquet::column::{
+//    page::PageReader,
+//    reader::{
+//        decoder::{ColumnValueDecoder, ColumnValueDecoderImpl},
+//        GenericColumnReader,
+//    },
+//};
+//use parquet::errors::ParquetError;
+//use parquet::schema::types::ColumnDescPtr;
+
 
 //use parquet::arrow::array_reader::ArrayReader;
 
@@ -120,7 +141,6 @@ fn read_one(n: usize, pq_path: String) -> Result<Py<PyAny>, PyErr> {
 #[pyfunction]
 fn read_one_v2(n: usize, pq_path: String) { // -> Result<Py<PyAny>, PyErr> { 
 
-
     let chunk_reader = File::open(pq_path).unwrap();
     let metadata = parse_metadata(&chunk_reader).unwrap();
     let rg_meta = metadata.row_group(0);
@@ -145,13 +165,13 @@ fn read_one_v2(n: usize, pq_path: String) { // -> Result<Py<PyAny>, PyErr> {
     let tik = Instant::now();
 
     //let page_locations = &offset_index[0];
-    let page_location = &offset_index[0][214];
+    let page_location = &offset_index[2][0];
     let page_locations = vec![page_location.clone()];
     println!("{}", {page_location.offset});
     println!("{}", {page_location.compressed_page_size});
     println!("{}", {page_location.first_row_index});
-    let column_meta = rg_meta.column(0);
-    let total_rows = rg_meta.num_rows() as usize;
+    //let column_meta = rg_meta.column(col_indx);
+    //let total_rows = rg_meta.num_rows() as usize;
     //let page_reader = SerializedPageReader::new(chunk_reader.into(), column_meta, total_rows, Some(page_locations.to_vec())).unwrap();
     //let mut page_reader = SerializedPageReader::new(chunk_reader.into(), column_meta, total_rows, Some(page_locations.clone())).unwrap();
     let selection = RowSelection::from(vec![
@@ -169,9 +189,11 @@ fn read_one_v2(n: usize, pq_path: String) { // -> Result<Py<PyAny>, PyErr> {
     let start = range.start;
     let length = range.end-range.start + 1;
 
-    let bytes = chunk_reader.get_bytes(start as u64, length);
+    let bytes = chunk_reader.get_bytes(start as u64, length).unwrap();
     print_type_of(&bytes);
-    //println!("{:?}", bytes);
+    println!("{:?}", bytes);
+    let s_result = std::str::from_utf8(&bytes).unwrap();
+    println!("s_result = {}", s_result);
     let tok = Instant::now();
 
     //if let Some(page_result) = page_reader.next() { 
@@ -209,7 +231,7 @@ fn read_one_v2(n: usize, pq_path: String) { // -> Result<Py<PyAny>, PyErr> {
 //
 
     let elapsed_time = tok.duration_since(tik);
-    println!("Elapsed rust fetch time: {} seconds and {} milliseconds", elapsed_time.as_secs(), elapsed_time.subsec_millis());
+    println!("Elapsed Rust fetch time: {} nanoseconds", elapsed_time.as_nanos());
     //println!("num vals: {}", page.unwrap().expect("REASON").num_values());
     //println!("buffer: {}", page.unwrap().expect("REASON").buffer());
 
@@ -219,10 +241,7 @@ fn read_one_v2(n: usize, pq_path: String) { // -> Result<Py<PyAny>, PyErr> {
 }
 
 #[pyfunction]
-fn read_one_v3(n: usize, pq_path: String) -> Result<Py<PyAny>, PyErr> { 
-    let col_indx = 2;
-    let rg_indx = 0;
-    let pg_indx = 0;
+fn read_one_v3(rg_indx: usize, col_indx: usize, pg_indx: usize, to_skip: usize, pq_path: String) -> Result<Py<PyAny>, PyErr> { 
 
     let chunk_reader = File::open(pq_path).unwrap();
     let metadata = parse_metadata(&chunk_reader).unwrap();
@@ -230,7 +249,7 @@ fn read_one_v3(n: usize, pq_path: String) -> Result<Py<PyAny>, PyErr> {
 
     let tik = Instant::now();
     let offset_index = read_pages_locations(&chunk_reader, rg_meta.columns()).unwrap();
-    let page_location = &offset_index[col_indx][rg_indx];
+    let page_location = &offset_index[col_indx][pg_indx];
     let page_locations = vec![page_location.clone()];
     println!("{}", {page_location.offset});
     println!("{}", {page_location.compressed_page_size});
@@ -242,7 +261,7 @@ fn read_one_v3(n: usize, pq_path: String) -> Result<Py<PyAny>, PyErr> {
     let column_reader = get_column_reader(column_descriptor, Box::new(page_reader));
     let mut typed_column_reader = get_typed_column_reader::<ByteArrayType>(column_reader);
     let mut values = vec![ByteArray::default(); 1]; 
-    let records_skipped = typed_column_reader.skip_records(1);
+    let records_skipped = typed_column_reader.skip_records(to_skip);
 
     let mut def_levels = vec![0];
     let def_levels_option: Option<&mut [i16]> = Some(&mut def_levels[..]);
@@ -255,12 +274,12 @@ fn read_one_v3(n: usize, pq_path: String) -> Result<Py<PyAny>, PyErr> {
         &mut values,
     ).expect("read_records() should be OK");
 
-    println!("values = {:#?}", values);
+    //println!("values = {:#?}", values);
     print_type_of(&values);
 
     let tok = Instant::now();
     let elapsed_time = tok.duration_since(tik);
-    println!("Elapsed Rust fetch time: {} seconds and {} milliseconds", elapsed_time.as_secs(), elapsed_time.subsec_millis());
+    println!("Elapsed Rust fetch time: {} nanoseconds", elapsed_time.as_nanos());
 
     let data = values[0].data();
     let len = values[0].len();
@@ -273,12 +292,91 @@ fn read_one_v3(n: usize, pq_path: String) -> Result<Py<PyAny>, PyErr> {
     })
 }
 
+//#[pyfunction]
+//fn read_one_v4(rg_indx: usize, col_indx: usize, pg_indx: usize, to_skip: usize, pq_path: String) -> Result<Py<PyAny>, PyErr> { 
+//    //let col_indx = 2;
+//    //let rg_indx = 0;
+//    //let pg_indx = 0;
+//
+//    let chunk_reader = File::open(pq_path).unwrap();
+//    let metadata = parse_metadata(&chunk_reader).unwrap();
+//    let rg_meta = metadata.row_group(rg_indx);
+//
+//    let offset_index = read_pages_locations(&chunk_reader, rg_meta.columns()).unwrap();
+//    let page_location = &offset_index[col_indx][pg_indx];
+//    let page_locations = vec![page_location.clone()];
+//
+//    let props = Arc::new(ReaderProperties::builder().build());
+//    let f = Arc::clone(file);
+//    let row_group_reader = SerializedRowGroupReader::new(
+//            chunk_reader,
+//            rg_meta,
+//            page_locations,
+//            props,
+//        );
+//
+//    let column_meta = rg_meta.column(col_indx);
+//    let total_rows = rg_meta.num_rows() as usize;
+//    let page_reader = SerializedPageReader::new_with_properties(
+//        Arc::clone(&self.chunk_reader),
+//        column_meta,
+//        total_rows,
+//        page_locations,
+//        props
+//    );
+//    let page_reader = row_group_reader.get_column_page_reader(0).unwrap();
+//
+//
+//    let tik = Instant::now();
+//    println!("{}", {page_location.offset});
+//    println!("{}", {page_location.compressed_page_size});
+//    println!("{}", {page_location.first_row_index});
+//    let column_meta = rg_meta.column(col_indx);
+//    let total_rows = rg_meta.num_rows() as usize;
+//    let mut page_reader = SerializedPageReader::new(chunk_reader.into(), column_meta, total_rows, Some(page_locations)).unwrap();
+//    let column_descriptor = column_meta.column_descr_ptr();
+//    let column_reader = get_column_reader(column_descriptor, Box::new(page_reader));
+//    let mut typed_column_reader = get_typed_column_reader::<ByteArrayType>(column_reader);
+//    let mut values = vec![ByteArray::default(); 1]; 
+//    let records_skipped = typed_column_reader.skip_records(to_skip);
+//
+//    let mut def_levels = vec![0];
+//    let def_levels_option: Option<&mut [i16]> = Some(&mut def_levels[..]);
+//    let mut rep_levels = vec![0];
+//    let rep_levels_option: Option<&mut [i16]> = Some(&mut rep_levels[..]);
+//    let (_, values_read, levels_read) = typed_column_reader.read_records(
+//        1,
+//        def_levels_option,
+//        rep_levels_option,
+//        &mut values,
+//    ).expect("read_records() should be OK");
+//
+//    println!("values = {:#?}", values);
+//    print_type_of(&values);
+//
+//    let tok = Instant::now();
+//    let elapsed_time = tok.duration_since(tik);
+//    println!("Elapsed Rust fetch time: {} seconds and {} milliseconds", elapsed_time.as_secs(), elapsed_time.subsec_millis());
+//
+//    let data = values[0].data();
+//    let len = values[0].len();
+//    Python::with_gil(|py| -> PyResult<Py<PyAny>> {
+//        let py_bytearray = PyByteArray::new_with(py, len, |bytes: &mut [u8]| {
+//            bytes.copy_from_slice(&data);
+//            Ok(())
+//        })?;
+//        Ok(py_bytearray.into())
+//    })
+//}
+
+
 
 #[pymodule]
 fn delta(_py: Python<'_>, m: &PyModule) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(read_one, m)?)?;
     m.add_function(wrap_pyfunction!(read_one_v2, m)?)?;
     m.add_function(wrap_pyfunction!(read_one_v3, m)?)?;
+    //m.add_function(wrap_pyfunction!(read_one_v4, m)?)?;
     m.add_function(wrap_pyfunction!(read_batch, m)?)?;
     Ok(())
 }
