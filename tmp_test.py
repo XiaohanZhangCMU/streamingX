@@ -35,10 +35,15 @@ df = pd.read_parquet(pq)
 print(df.head())
 print(df.columns)
 
-
+col_indx = 2
+rg_indx = 1
+pg_indx = 1
+to_skip = 4
 
 tik = time.time()
-result = delta.read_one_v3(100000, pq)
+result = delta.read_one_v3(rg_indx, col_indx, pg_indx, to_skip, pq)
+#result = delta.read_one(1000, pq)
+##result = delta.read_one_v2(1000, pq)
 tok = time.time()
 print(f'Elapsed Python time: {tok - tik}')
 print(result)
