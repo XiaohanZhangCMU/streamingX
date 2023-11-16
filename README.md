@@ -12,7 +12,7 @@
     <!-- SETUPTOOLS_LONG_DESCRIPTION_HIDE_END -->
 </p>
 
-<h2><p align="center">Fast, accurate streaming of training data from cloud storage</p></h2>
+<h2><p align="center">Fast,,,, accurate streaming of training data from cloud storage</p></h2>
 
 <h4><p align='center'>
 <a href="https://www.mosaicml.com">[Website]</a>
