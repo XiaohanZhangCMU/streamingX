@@ -360,6 +360,7 @@ class StreamingDataset(Array, IterableDataset):
         logger.warning("I am here 1: in StreamingDataset")
 
         world = World.detect()
+        logger.warning("I am here 2: in StreamingDataset")
         self._unique_rank_world = world
         if replication is not None:
             self._parallel_rank_world = world.replicate(replication)
@@ -373,6 +374,7 @@ class StreamingDataset(Array, IterableDataset):
         # nodes specified in the `_parallel_rank_world` if using `replication`.
         self.initial_physical_nodes = None
 
+        logger.warning("I am here 3: in StreamingDataset")
         # Check streams vs remote/local.
         if bool(streams) == (bool(remote) or bool(local)):
             raise ValueError(
@@ -998,7 +1000,7 @@ class StreamingDataset(Array, IterableDataset):
         # Do expensive work that may use a lot of cores/memory just once, in the local leader.
         if u_world.is_local_leader:
             if self.replication is not None and not u_world.worker_of_rank:
-                logger.warning(f'The `replication` arg has been set and training is resuming ' +
+                logger.warning(f'Hack here to see if it works. The `replication` arg has been set and training is resuming ' +
                                f'from sample {sample_in_epoch}. Make sure you are accounting ' +
                                f"for sample replication when using StreamingDataset's " +
                                f'`state_dict` method for deterministic resumption. Otherwise, ' +
