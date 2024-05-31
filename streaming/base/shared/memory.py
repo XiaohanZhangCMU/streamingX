@@ -119,6 +119,7 @@ class SharedMemory:
         """
         if rtype == 'shared_memory':
             return
+        print(f"Resource registered by process with PID: {multiprocessing.current_process().pid}")
         return resource_tracker._resource_tracker.register(self, name, rtype)
 
     def fix_unregister(self, name: str, rtype: str) -> Any:
@@ -133,6 +134,7 @@ class SharedMemory:
         """
         if rtype == 'shared_memory':
             return
+        print(f"Resource unregistered by process with PID: {multiprocessing.current_process().pid}")
         return resource_tracker._resource_tracker.unregister(self, name, rtype)
 
     def cleanup(self):
