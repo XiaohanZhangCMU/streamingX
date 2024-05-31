@@ -21,6 +21,7 @@ from multiprocessing import Process
 
 # Flag to indicate whether SharedMemory has been instantiated
 shared_memory_created = False
+my_resource_tracker = resource_tracker._resource_tracker
 
 # Save a reference to the original SharedMemory __init__ method
 original_shared_memory_init = BuiltinSharedMemory.__init__

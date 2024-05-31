@@ -32,7 +32,7 @@ from streaming.base.distributed import maybe_init_dist
 from streaming.base.format import get_index_basename
 from streaming.base.sampling import get_sampling
 from streaming.base.shared import (SharedArray, SharedBarrier, SharedMemory, SharedScalar,
-                                   _get_path, get_shm_prefix)
+                                   _get_path, get_shm_prefix, my_resource_tracker)
 from streaming.base.spanner import Spanner
 from streaming.base.stream import Stream
 from streaming.base.util import bytes_to_int, number_abbrev_to_int
@@ -1281,6 +1281,9 @@ class StreamingDataset(Array, IterableDataset):
             Exception: re-raises the exception.
         """
         exception = future.exception()
+        logger.warning(f"xiaohan inside on exception, stopping resource tracker {my_resource_tracker._pid}")
+        my_resource_tracker._stop()
+        logger.warning(f"xiaohan inside on exception stop resource tracker")
         if exception:
             # Set the event to let the other threadpool threads know about the exception.
             self._event.set()
