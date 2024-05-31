@@ -10,8 +10,12 @@ from time import sleep
 from typing import Any, Optional
 
 from streaming.base.constant import TICK
+#########################
+import logging
+logger = logging.getLogger(__name__)
 
 from multiprocessing import Process
+
 # Flag to indicate whether SharedMemory has been instantiated
 shared_memory_created = False
 
@@ -33,12 +37,12 @@ original_start = Process.start
 def new_start(self):
     """New start method that prints the process ID if SharedMemory is created."""
     if shared_memory_created:
-        print(f"I am in new start: Starting process with PID: {self.pid}")
+        logger.warning(f"I am in new start: Starting process with PID: {self.pid}")
     original_start(self)
 
 # Monkey patch the Process class
 Process.start = new_start
-
+##############################
 
 class SharedMemory:
     """Improved quiet implementation of shared memory.
@@ -119,7 +123,7 @@ class SharedMemory:
         """
         if rtype == 'shared_memory':
             return
-        print(f"Resource registered by process with PID: {multiprocessing.current_process().pid}")
+        logger.warning(f"Resource registered by process with PID: {multiprocessing.current_process().pid}")
         return resource_tracker._resource_tracker.register(self, name, rtype)
 
     def fix_unregister(self, name: str, rtype: str) -> Any:
@@ -134,7 +138,7 @@ class SharedMemory:
         """
         if rtype == 'shared_memory':
             return
-        print(f"Resource unregistered by process with PID: {multiprocessing.current_process().pid}")
+        logger.warning(f"Resource unregistered by process with PID: {multiprocessing.current_process().pid}")
         return resource_tracker._resource_tracker.unregister(self, name, rtype)
 
     def cleanup(self):
