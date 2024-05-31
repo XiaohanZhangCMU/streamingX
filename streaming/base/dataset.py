@@ -32,7 +32,8 @@ from streaming.base.distributed import maybe_init_dist
 from streaming.base.format import get_index_basename
 from streaming.base.sampling import get_sampling
 from streaming.base.shared import (SharedArray, SharedBarrier, SharedMemory, SharedScalar,
-                                   _get_path, get_shm_prefix, my_resource_tracker)
+                                   _get_path, get_shm_prefix)
+from streaming.base.shared.memory import my_resource_tracker
 from streaming.base.spanner import Spanner
 from streaming.base.stream import Stream
 from streaming.base.util import bytes_to_int, number_abbrev_to_int
