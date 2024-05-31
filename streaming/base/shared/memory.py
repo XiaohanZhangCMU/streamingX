@@ -11,6 +11,7 @@ from typing import Any, Optional
 
 from streaming.base.constant import TICK
 #########################
+import os
 import logging
 logger = logging.getLogger(__name__)
 
@@ -26,6 +27,7 @@ def new_shared_memory_init(self, *args, **kwargs):
     """New __init__ method for SharedMemory to set the flag."""
     global shared_memory_created
     shared_memory_created = True
+    logger.warning(f"I am in new shm init: Starting process with PID: {os.getpid()}")
     original_shared_memory_init(self, *args, **kwargs)
 
 # Monkey patch the SharedMemory class
@@ -37,7 +39,7 @@ original_start = Process.start
 def new_start(self):
     """New start method that prints the process ID if SharedMemory is created."""
     if shared_memory_created:
-        logger.warning(f"I am in new start: Starting process with PID: {self.pid}")
+        logger.warning(f"I am in new start: Starting process with PID: {os.getpid()}")
     original_start(self)
 
 # Monkey patch the Process class
