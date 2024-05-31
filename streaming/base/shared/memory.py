@@ -11,6 +11,34 @@ from typing import Any, Optional
 
 from streaming.base.constant import TICK
 
+from multiprocessing import Process
+# Flag to indicate whether SharedMemory has been instantiated
+shared_memory_created = False
+
+# Save a reference to the original SharedMemory __init__ method
+original_shared_memory_init = BuiltinSharedMemory.__init__
+
+def new_shared_memory_init(self, *args, **kwargs):
+    """New __init__ method for SharedMemory to set the flag."""
+    global shared_memory_created
+    shared_memory_created = True
+    original_shared_memory_init(self, *args, **kwargs)
+
+# Monkey patch the SharedMemory class
+BuiltinSharedMemory.__init__ = new_shared_memory_init
+
+# Save a reference to the original start method of the Process class
+original_start = Process.start
+
+def new_start(self):
+    """New start method that prints the process ID if SharedMemory is created."""
+    if shared_memory_created:
+        print(f"I am in new start: Starting process with PID: {self.pid}")
+    original_start(self)
+
+# Monkey patch the Process class
+Process.start = new_start
+
 
 class SharedMemory:
     """Improved quiet implementation of shared memory.

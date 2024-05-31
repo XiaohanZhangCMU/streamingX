@@ -357,6 +357,8 @@ class StreamingDataset(Array, IterableDataset):
         #   * `parallel_` is who we think we are for iterating purposes, where groups of process
         #     must act the same if `replication` is specified.
         #     This can enable tensor or sequence parallelism.
+        log.warning("I am here 1: in StreamingDataset")
+
         world = World.detect()
         self._unique_rank_world = world
         if replication is not None:
