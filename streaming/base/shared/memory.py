@@ -98,7 +98,7 @@ class SharedMemory:
             self.shm = shm
         finally:
             resource_tracker.register = original_rtracker_reg
-            log.warning(f"I am in ShmMemory: finally, pid= {resource_tracker._resource_tracker.pid}")
+            logger.warning(f"I am in ShmMemory: finally, pid= {resource_tracker._resource_tracker.pid}")
 
         if auto_cleanup:
             # atexit handler doesn't get called if the program is killed by a signal not
@@ -112,7 +112,7 @@ class SharedMemory:
         Returns:
             memoryview: Internal buffer.
         """
-        log.warning(f"I am in ShmMemory: buf, pid= {resource_tracker._resource_tracker.pid}")
+        logger.warning(f"I am in ShmMemory: buf, pid= {resource_tracker._resource_tracker.pid}")
         return self.shm.buf
 
     # Monkey-patched "multiprocessing.resource_tracker" to skip unwanted resource tracker warnings.
