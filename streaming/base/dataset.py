@@ -1301,6 +1301,7 @@ class StreamingDataset(Array, IterableDataset):
             it (_Iterator): State of __iter__.
         """
         # Download loop.
+        logger.warning(f"I am in _prepare_thread: process = {os.getpid()}")
         while True:
             # If we've started a new epoch early (__iter__ was called again), exit this thread
             # because there can only be one epoch at once.
@@ -1352,6 +1353,7 @@ class StreamingDataset(Array, IterableDataset):
         Args:
             it (_Iterator): State of __iter__.
         """
+        logger.warning(f"I am in _ready_thread: process = {os.getpid()}")
         # Ready loop.
         while True:
             # If we've started a new epoch early (__iter__ was called again), exit this thread
