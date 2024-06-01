@@ -13,6 +13,7 @@ from streaming.base.constant import TICK
 #########################
 import os
 import logging
+import signal
 logger = logging.getLogger(__name__)
 
 from multiprocessing import Process
@@ -167,3 +168,15 @@ class SharedMemory:
             pass
         finally:
             resource_tracker.unregister = original_rtracker_unreg
+            rt = resource_tracker._resource_tracker
+            if rt._pid is not None:
+                pid = rt._pid
+                logger.warning(f"In Shm: Terminating resource_tracker process with PID: {pid}")
+                try:
+                    os.kill(pid, signal.SIGKILL)  # Terminate the process
+                    rt._pid = None  # Ensure we don't attempt to terminate it again
+                logger.warning(f"In Shm: Terminated resource_tracker process with PID: {pid}")
+                except OSError as e:
+                    log.warning(f"Error terminating resource_tracker: {e}")
+
+
