@@ -175,7 +175,7 @@ class SharedMemory:
                 try:
                     os.kill(pid, signal.SIGKILL)  # Terminate the process
                     rt._pid = None  # Ensure we don't attempt to terminate it again
-                logger.warning(f"In Shm: Terminated resource_tracker process with PID: {pid}")
+                    logger.warning(f"In Shm: Terminated resource_tracker process with PID: {pid}")
                 except OSError as e:
                     log.warning(f"Error terminating resource_tracker: {e}")
 
