@@ -99,7 +99,7 @@ class SharedMemory:
             self.shm = shm
         finally:
             resource_tracker.register = original_rtracker_reg
-            #logger.warning(f"I am in ShmMemory: finally, pid= {resource_tracker._resource_tracker._pid}")
+            logger.warning(f"I am in ShmMemory: finally, pid= {resource_tracker._resource_tracker._pid}")
 
         if auto_cleanup:
             # atexit handler doesn't get called if the program is killed by a signal not
