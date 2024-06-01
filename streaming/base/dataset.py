@@ -1282,16 +1282,18 @@ class StreamingDataset(Array, IterableDataset):
             Exception: re-raises the exception.
         """
         exception = future.exception()
-        logger.warning(f"xiaohan inside on exception, stopping resource tracker {my_resource_tracker._pid}")
-        if my_resource_tracker._pid is not None and my_resource_tracker._fd is not None and  my_resource_tracker._check_alive():
-            my_resource_tracker._stop()
-        else:
-            logger.warning(f"xiaohan inside on exception skip stop")
-        logger.warning(f"xiaohan inside on exception stop resource tracker")
         if exception:
             # Set the event to let the other threadpool threads know about the exception.
             self._event.set()
             # Re-raise the exception.
+
+            logger.warning(f"xiaohan inside on exception, stopping resource tracker {my_resource_tracker._pid}")
+            if my_resource_tracker._pid is not None and my_resource_tracker._fd is not None and  my_resource_tracker._check_alive():
+                my_resource_tracker._stop()
+            else:
+                logger.warning(f"xiaohan inside on exception skip stop")
+            logger.warning(f"xiaohan inside on exception stop resource tracker")
+
             raise exception
 
     def _prepare_thread(self, it: _Iterator) -> None:
