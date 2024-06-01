@@ -1283,7 +1283,7 @@ class StreamingDataset(Array, IterableDataset):
         """
         exception = future.exception()
         logger.warning(f"xiaohan inside on exception, stopping resource tracker {my_resource_tracker._pid}")
-        if my_resource_tracker._check_alive():
+        if my_resource_tracker._pid is not None and my_resource_tracker._fd is not None and  my_resource_tracker._check_alive():
             my_resource_tracker._stop()
         else:
             logger.warning(f"xiaohan inside on exception skip stop")
