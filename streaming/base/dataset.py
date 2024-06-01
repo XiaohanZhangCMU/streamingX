@@ -1287,13 +1287,13 @@ class StreamingDataset(Array, IterableDataset):
             self._event.set()
             # Re-raise the exception.
 
-            logger.warning(f"xiaohan inside on exception, stopping resource tracker {my_resource_tracker._pid}")
-            if my_resource_tracker._fd is not None and  my_resource_tracker._check_alive():
-                #if my_resource_tracker._pid is not None and :
-                my_resource_tracker._stop()
-            else:
-                logger.warning(f"xiaohan inside on exception skip stop: {my_resource_tracker._pid}, {my_resource_tracker._fd}, {my_resource_tracker._check_alive()}")
-            logger.warning(f"xiaohan inside on exception stop resource tracker")
+            # logger.warning(f"xiaohan inside on exception, stopping resource tracker {my_resource_tracker._pid}")
+            # if my_resource_tracker._fd is not None and  my_resource_tracker._check_alive():
+            #     #if my_resource_tracker._pid is not None and :
+            #     my_resource_tracker._stop()
+            # else:
+            #     logger.warning(f"xiaohan inside on exception skip stop: {my_resource_tracker._pid}, {my_resource_tracker._fd}, {my_resource_tracker._check_alive()}")
+            # logger.warning(f"xiaohan inside on exception stop resource tracker")
 
             raise exception
 
