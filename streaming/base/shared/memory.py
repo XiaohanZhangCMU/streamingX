@@ -30,7 +30,7 @@ def new_shared_memory_init(self, *args, **kwargs):
     """New __init__ method for SharedMemory to set the flag."""
     global shared_memory_created
     shared_memory_created = True
-    logger.warning(f"I am in new shm init: Starting process with PID: {os.getpid()}")
+    #logger.warning(f"I am in new shm init: Starting process with PID: {os.getpid()}")
     original_shared_memory_init(self, *args, **kwargs)
 
 # Monkey patch the SharedMemory class
@@ -99,7 +99,7 @@ class SharedMemory:
             self.shm = shm
         finally:
             resource_tracker.register = original_rtracker_reg
-            logger.warning(f"I am in ShmMemory: finally, pid= {resource_tracker._resource_tracker._pid}")
+            #logger.warning(f"I am in ShmMemory: finally, pid= {resource_tracker._resource_tracker._pid}")
 
         if auto_cleanup:
             # atexit handler doesn't get called if the program is killed by a signal not
@@ -113,7 +113,7 @@ class SharedMemory:
         Returns:
             memoryview: Internal buffer.
         """
-        logger.warning(f"I am in ShmMemory: buf, pid= {resource_tracker._resource_tracker._pid}")
+        #logger.warning(f"I am in ShmMemory: buf, pid= {resource_tracker._resource_tracker._pid}")
         return self.shm.buf
 
     # Monkey-patched "multiprocessing.resource_tracker" to skip unwanted resource tracker warnings.
