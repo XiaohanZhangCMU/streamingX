@@ -9,9 +9,9 @@ from tempfile import mkdtemp
 from typing import Any, Tuple, List, Dict
 
 import pytest
-from pyspark.sql import SparkSession
-from pyspark.sql.functions import col
-from pyspark.sql.types import DecimalType, IntegerType, StringType, StructField, StructType
+#from pyspark.sql import SparkSession
+#from pyspark.sql.functions import col
+#from pyspark.sql.types import DecimalType, IntegerType, StringType, StructField, StructType
 
 from streaming import delta
 import glob
